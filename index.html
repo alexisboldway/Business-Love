@@ -136,13 +136,15 @@
     });
 
     document.getElementById("assessmentForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
       let total = 0;
 
       for (let i = 1; i <= 25; i++) {
         const selected = document.querySelector(`input[name="q${i}"]:checked`);
         if (!selected) {
           alert("Please complete all questions.");
-          e.preventDefault();
           return;
         }
         total += parseInt(selected.value);
@@ -154,17 +156,23 @@
       else if (total >= 55) result = "⚠️ Needs Realignment – Some struggles.";
       else result = "🚨 At Risk – Consider focused support.";
 
-      // Set hidden form values
-      document.getElementById("scoreField").value = total;
-      document.getElementById("resultField").value = result;
-
+      // Display results to user
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = `
         <h2>Your Score: ${total}</h2>
         <p><strong>Result:</strong> ${result}</p>
-        <p><strong>A copy of your results will be emailed to you shortly.</strong></p>
+        <p><strong>A copy of your results will be emailed to:</strong> ${email}</p>
       `;
       resultsDiv.style.display = "block";
+
+      // Set hidden form fields
+      document.getElementById("scoreField").value = total;
+      document.getElementById("resultField").value = result;
+
+      // Delay form submission to allow user to view results
+      setTimeout(() => {
+        document.getElementById("assessmentForm").submit();
+      }, 3000); // submit after 3 seconds
     });
   </script>
 </body>
