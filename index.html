@@ -76,7 +76,7 @@
 <body>
   <h1>Love & Business Assessment</h1>
 
-  <form id="assessmentForm" action="https://formspree.io/f/xvgkwopy" method="POST" target="_blank">
+  <form id="assessmentForm" action="https://formspree.io/f/xvgkwopy" method="POST">
     <label for="name">Your Name</label>
     <input type="text" name="Name" id="name" required placeholder="Your Name" />
 
@@ -152,7 +152,7 @@
       return "🚨 Needs Focus";
     }
 
-    document.getElementById("assessmentForm").addEventListener("submit", function (e) {
+    document.getElementById("assessmentForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       let total = 0;
@@ -182,15 +182,21 @@
         categoryData += `${cat.title}: ${score}/20 – ${interpretation} | `;
       });
 
-      resultsDiv.innerHTML += `<p><em>Your responses have been recorded. Feel free to take a screenshot or keep this page open for reference.</em></p>`;
+      resultsDiv.innerHTML += `<p><em>Your responses have been submitted and saved. You can screenshot this page for your reference.</em></p>`;
       resultsDiv.style.display = "block";
 
-      // Fill in hidden fields for tracking
+      // Fill hidden fields
       document.getElementById("totalScore").value = total;
       document.getElementById("categoryData").value = categoryData;
 
-      // Submit form to Formspree (opens in new tab)
-      e.target.submit();
+      // Send via fetch (no redirect)
+      const formData = new FormData(e.target);
+
+      await fetch(e.target.action, {
+        method: "POST",
+        body: formData,
+        headers: { Accept: "application/json" }
+      });
     });
   </script>
 </body>
