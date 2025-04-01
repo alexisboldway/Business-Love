@@ -76,7 +76,7 @@
 <body>
   <h1>Love & Business Assessment</h1>
 
-  <form id="assessmentForm" action="https://formspree.io/f/xvgkwopy" method="POST">
+  <form id="assessmentForm" action="https://formspree.io/f/xvgkwopy" method="POST" target="_blank">
     <label for="name">Your Name</label>
     <input type="text" name="Name" id="name" required placeholder="Your Name" />
 
@@ -156,7 +156,9 @@
       e.preventDefault();
 
       let total = 0;
-      const scores = [];
+      let categoryData = "";
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
 
       for (let i = 1; i <= 25; i++) {
         const selected = document.querySelector(`input[name="q${i}"]:checked`);
@@ -167,11 +169,7 @@
         total += parseInt(selected.value);
       }
 
-      const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = `<h2>Total Score: ${total}</h2>`;
-
-      let categoryOutput = "";
-      let categoryData = "";
+      resultsDiv.innerHTML += `<h2>Total Score: ${total}</h2>`;
 
       categories.forEach(cat => {
         let score = 0;
@@ -180,21 +178,19 @@
           score += parseInt(selected.value);
         }
         const interpretation = getCategoryInterpretation(score);
-        categoryOutput += `<p><strong>${cat.title}:</strong> ${score}/20 – ${interpretation}</p>`;
+        resultsDiv.innerHTML += `<p><strong>${cat.title}:</strong> ${score}/20 – ${interpretation}</p>`;
         categoryData += `${cat.title}: ${score}/20 – ${interpretation} | `;
       });
 
-      resultsDiv.innerHTML += categoryOutput;
+      resultsDiv.innerHTML += `<p><em>Your responses have been recorded. Feel free to take a screenshot or keep this page open for reference.</em></p>`;
       resultsDiv.style.display = "block";
 
-      // Send results to hidden fields for Formspree tracking
+      // Fill in hidden fields for tracking
       document.getElementById("totalScore").value = total;
       document.getElementById("categoryData").value = categoryData;
 
-      // Submit the form after showing results
-      setTimeout(() => {
-        document.getElementById("assessmentForm").submit();
-      }, 3000);
+      // Submit form to Formspree (opens in new tab)
+      e.target.submit();
     });
   </script>
 </body>
