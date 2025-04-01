@@ -25,7 +25,7 @@
       display: block;
       margin-bottom: 6px;
     }
-    input[type="email"] {
+    input[type="text"], input[type="email"] {
       padding: 10px;
       font-size: 1rem;
       width: 100%;
@@ -77,14 +77,16 @@
   <h1>Love & Business Assessment</h1>
 
   <form id="assessmentForm" action="https://formspree.io/f/xvgkwopy" method="POST">
-    <label for="email">Your Email Address</label>
-    <input type="email" name="_replyto" id="email" required placeholder="you@example.com" />
-    <input type="hidden" name="_cc" value="alexis@theboldway.com" />
-    <input type="hidden" name="_subject" value="New Love & Business Assessment Result" />
-    <input type="hidden" name="Score" id="scoreField" />
-    <input type="hidden" name="Result" id="resultField" />
+    <label for="name">Your Name</label>
+    <input type="text" name="Name" id="name" required placeholder="Your Name" />
+
+    <label for="email">Your Email (for tracking only)</label>
+    <input type="email" name="Email" id="email" required placeholder="you@example.com" />
 
     <div id="questions"></div>
+
+    <input type="hidden" name="Total Score" id="totalScore" />
+    <input type="hidden" name="Category Breakdown" id="categoryData" />
 
     <button type="submit">Submit Assessment</button>
   </form>
@@ -92,6 +94,14 @@
   <div class="results" id="results" style="display: none;"></div>
 
   <script>
+    const categories = [
+      { title: "Communication & Conflict", start: 0, end: 4 },
+      { title: "Boundaries & Balance", start: 5, end: 9 },
+      { title: "Business Alignment", start: 10, end: 14 },
+      { title: "Emotional Connection", start: 15, end: 19 },
+      { title: "Vision & Growth", start: 20, end: 24 }
+    ];
+
     const questions = [
       "We listen to each other without interrupting.",
       "I feel heard and validated, even when we disagree.",
@@ -135,44 +145,56 @@
       questionsDiv.appendChild(qDiv);
     });
 
+    function getCategoryInterpretation(score) {
+      if (score >= 17) return "💪 Strong";
+      if (score >= 13) return "👍 Mostly Aligned";
+      if (score >= 9) return "⚠️ Some Friction";
+      return "🚨 Needs Focus";
+    }
+
     document.getElementById("assessmentForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
       let total = 0;
+      const scores = [];
 
       for (let i = 1; i <= 25; i++) {
         const selected = document.querySelector(`input[name="q${i}"]:checked`);
         if (!selected) {
-          alert("Please complete all questions.");
+          alert("Please answer all questions.");
           return;
         }
         total += parseInt(selected.value);
       }
 
-      let result = "";
-      if (total >= 85) result = "💪 Power Partners – Highly aligned.";
-      else if (total >= 70) result = "👍 Mostly Aligned – Minor friction.";
-      else if (total >= 55) result = "⚠️ Needs Realignment – Some struggles.";
-      else result = "🚨 At Risk – Consider focused support.";
-
-      // Display results to user
       const resultsDiv = document.getElementById("results");
-      resultsDiv.innerHTML = `
-        <h2>Your Score: ${total}</h2>
-        <p><strong>Result:</strong> ${result}</p>
-        <p><strong>A copy of your results will be emailed to:</strong> ${email}</p>
-      `;
+      resultsDiv.innerHTML = `<h2>Total Score: ${total}</h2>`;
+
+      let categoryOutput = "";
+      let categoryData = "";
+
+      categories.forEach(cat => {
+        let score = 0;
+        for (let i = cat.start + 1; i <= cat.end + 1; i++) {
+          const selected = document.querySelector(`input[name="q${i}"]:checked`);
+          score += parseInt(selected.value);
+        }
+        const interpretation = getCategoryInterpretation(score);
+        categoryOutput += `<p><strong>${cat.title}:</strong> ${score}/20 – ${interpretation}</p>`;
+        categoryData += `${cat.title}: ${score}/20 – ${interpretation} | `;
+      });
+
+      resultsDiv.innerHTML += categoryOutput;
       resultsDiv.style.display = "block";
 
-      // Set hidden form fields
-      document.getElementById("scoreField").value = total;
-      document.getElementById("resultField").value = result;
+      // Send results to hidden fields for Formspree tracking
+      document.getElementById("totalScore").value = total;
+      document.getElementById("categoryData").value = categoryData;
 
-      // Delay form submission to allow user to view results
+      // Submit the form after showing results
       setTimeout(() => {
         document.getElementById("assessmentForm").submit();
-      }, 3000); // submit after 3 seconds
+      }, 3000);
     });
   </script>
 </body>
