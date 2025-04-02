@@ -101,7 +101,7 @@
       { title: "Emotional Connection", start: 15, end: 19 },
       { title: "Vision & Growth", start: 20, end: 24 }
     ];
-
+  
     const questions = [
       "We listen to each other without interrupting.",
       "I feel heard and validated, even when we disagree.",
@@ -129,10 +129,10 @@
       "We talk about how the business supports our lifestyle.",
       "We are aligned on what matters most in life and business."
     ];
-
+  
     const answers = ["Rarely", "Sometimes", "Usually", "Always"];
     const questionsDiv = document.getElementById("questions");
-
+  
     questions.forEach((q, i) => {
       const qDiv = document.createElement("div");
       qDiv.className = "question";
@@ -144,22 +144,59 @@
       });
       questionsDiv.appendChild(qDiv);
     });
-
-    function getCategoryInterpretation(score) {
+  
+    const getInterpretation = (score) => {
       if (score >= 17) return "💪 Strong";
       if (score >= 13) return "👍 Mostly Aligned";
       if (score >= 9) return "⚠️ Some Friction";
       return "🚨 Needs Focus";
-    }
-
+    };
+  
+    const getTips = (category) => {
+      const tips = {
+        "Communication & Conflict": [
+          "Set a weekly check-in to openly talk about emotions and misunderstandings.",
+          "Use a shared journal for difficult conversations.",
+          "Establish a safe word or timeout rule for heated moments.",
+          "Practice 'I' statements to express concerns respectfully."
+        ],
+        "Boundaries & Balance": [
+          "Set clear work hours and respect off-time.",
+          "Create non-business rituals (like no-laptop dinners or daily walks).",
+          "Designate work-free zones at home.",
+          "Schedule at least one date night per week."
+        ],
+        "Business Alignment": [
+          "Clearly define roles and responsibilities in the business.",
+          "Decide how collaborative vs. independent decisions are made.",
+          "Hold monthly business alignment meetings.",
+          "Check in quarterly on whether goals are still shared and meaningful."
+        ],
+        "Emotional Connection": [
+          "Show affection through words, touch, and time daily.",
+          "Compliment or appreciate each other in a non-business context.",
+          "Start and end your day with a moment of personal connection.",
+          "Check in emotionally, not just logistically."
+        ],
+        "Vision & Growth": [
+          "Write a shared 3-year vision letter and review it monthly.",
+          "Set lifestyle and relationship goals, not just business ones.",
+          "Talk about long-term dreams without filtering for 'realism.'",
+          "Ask: Is our business supporting our life, or the other way around?"
+        ]
+      };
+      return tips[category] || [];
+    };
+  
     document.getElementById("assessmentForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
+  
       let total = 0;
       let categoryData = "";
       const resultsDiv = document.getElementById("results");
       resultsDiv.innerHTML = "";
-
+  
+      // Validate & Score
       for (let i = 1; i <= 25; i++) {
         const selected = document.querySelector(`input[name="q${i}"]:checked`);
         if (!selected) {
@@ -168,30 +205,50 @@
         }
         total += parseInt(selected.value);
       }
-
+  
+      // Show Total Score
       resultsDiv.innerHTML += `<h2>Total Score: ${total}</h2>`;
-
+  
+      // Category Breakdown
       categories.forEach(cat => {
         let score = 0;
         for (let i = cat.start + 1; i <= cat.end + 1; i++) {
           const selected = document.querySelector(`input[name="q${i}"]:checked`);
           score += parseInt(selected.value);
         }
-        const interpretation = getCategoryInterpretation(score);
-        resultsDiv.innerHTML += `<p><strong>${cat.title}:</strong> ${score}/20 – ${interpretation}</p>`;
+        const interpretation = getInterpretation(score);
         categoryData += `${cat.title}: ${score}/20 – ${interpretation} | `;
+  
+        resultsDiv.innerHTML += `
+          <div class="category-block">
+            <h3>${cat.title}</h3>
+            <p><strong>Score:</strong> ${score}/20 – ${interpretation}</p>
+        `;
+  
+        if (score < 17) {
+          const tips = getTips(cat.title);
+          resultsDiv.innerHTML += `<p><strong>Tips to Improve:</strong></p><ul>`;
+          tips.forEach(tip => {
+            resultsDiv.innerHTML += `<li>${tip}</li>`;
+          });
+          resultsDiv.innerHTML += `</ul>`;
+        }
+  
+        resultsDiv.innerHTML += `</div>`;
       });
-
-      resultsDiv.innerHTML += `<p><em>Your responses have been submitted and saved. You can screenshot this page for your reference.</em></p>`;
+  
+      resultsDiv.innerHTML += `
+        <p><em>Your responses have been submitted and saved. You can screenshot this page for your reference.</em></p>
+      `;
       resultsDiv.style.display = "block";
-
-      // Fill hidden fields
+  
+      // Fill hidden fields for Formspree
       document.getElementById("totalScore").value = total;
       document.getElementById("categoryData").value = categoryData;
-
-      // Send via fetch (no redirect)
+  
+      // Submit form silently via fetch
       const formData = new FormData(e.target);
-
+  
       await fetch(e.target.action, {
         method: "POST",
         body: formData,
@@ -199,5 +256,4 @@
       });
     });
   </script>
-</body>
-</html>
+  
